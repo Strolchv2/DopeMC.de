@@ -1,0 +1,37 @@
+package de.dopemc.hardcore.ChatAPI.listener;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+
+public class Listener_PlayerChat implements Listener{
+
+	@EventHandler
+	public void onPlayerChatEvent(@SuppressWarnings("deprecation") AsyncPlayerChatEvent e) {
+		
+		Player p = (Player) e.getPlayer();
+		
+				
+	}
+	
+    private String getGroupPrefix(String group) {
+        switch (group) {
+            case "admin":
+                return "&cAdmin &7» ";
+            case "builder":
+                return "&bBuilder &7» ";
+            case "vip":
+                return "&6VIP &7» ";
+            case "support":
+                return "&eSupporter &7» ";
+            case "creator":
+                return "&5Creator &7» ";
+            default:
+                return "&7";
+        }
+    }
+	
+}	
+
+

@@ -1,0 +1,23 @@
+package de.dopemc.hardcore.statsapi;
+
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class Main extends JavaPlugin{
+
+	public String Prefix = "§eDopeMC.de §7✘ §f";
+
+	@Override
+	public void onEnable() {
+		
+		super.onEnable();
+		
+	}
+	
+	@Override
+	public void onDisable() {
+		
+		super.onDisable();
+		
+	}
+	
+}

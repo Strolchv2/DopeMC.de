@@ -1,0 +1,128 @@
+package de.dopemc.hardcore.ChatAPI.command;
+
+import java.util.concurrent.TimeUnit;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import de.dopemc.hardcore.ChatAPI.Main;
+
+public class Command_Mute implements CommandExecutor{
+
+	public void Mute(Player p) {
+		
+		p.sendMessage("§7------------§eDopeMC.de§7----------------");
+		p.sendMessage("");
+		p.sendMessage("§c/mute <ZeitInMinuten> #Spere den chat für x Minuten");
+		p.sendMessage("§c/mute <player> <ZeitInMinten> #Spere einen Spieler für x Minuten");
+		p.sendMessage("");
+		p.sendMessage("§7-----------------------------");
+
+		p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 5, 5);
+		
+	}
+	
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    	
+    	Player p = (Player) sender;
+    	
+        if (command.getName().equalsIgnoreCase("mute")) {
+        	
+        	if(!sender.hasPermission("ChatAPI.Mute")) {
+        		
+    			
+    			p.sendMessage("");
+    			p.sendMessage(Main.getInstance().Prefix + "§cHey das darfst du nicht!");
+    			p.sendMessage("");
+
+    			p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_BREAK, 5, 5);
+        		
+        	}
+        	
+            if (args.length == 1) {
+                // /mute <zeitInMinuten> (globaler Mute)
+                try {
+                    long durationMinutes = Long.parseLong(args[0]);
+                    
+                    Main.getInstance().chatyml.globalMuteEndTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(durationMinutes);
+                    
+                    Main.getInstance().chatyml.globalMuted = true;
+                    
+                    Bukkit.broadcastMessage(ChatColor.RED + "Der Chat wurde für " + durationMinutes + " Minuten stummgeschaltet!");
+                    
+                    Main.getInstance().chatyml.saveConfig(Main.getInstance());
+                    
+                    return true;
+                    
+                } catch (NumberFormatException e) {
+                	
+
+                	Mute(p);
+                	
+                    return false;
+                    
+                }
+                
+            } else if (args.length == 2) {
+            	
+                // /mute <Spieler> <ZeitInMinuten> (Spieler-spezifischer Mute)
+            	
+                String targetName = args[0];
+                
+                try {
+                	
+                    long durationMinutes = Long.parseLong(args[1]);
+                    
+                    Player target = Bukkit.getPlayer(targetName);
+                    
+                    if (target != null) {
+                    	
+                        long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(durationMinutes);
+                        
+                        Main.getInstance().chatyml.playerMuteEndTime.put(target.getUniqueId(), endTime);
+                        
+                        target.sendMessage(ChatColor.RED + "Du wurdest für " + durationMinutes + " Minuten stummgeschaltet.");
+                        
+                        sender.sendMessage(ChatColor.GREEN + "Spieler " + targetName + " wurde für " + durationMinutes + " Minuten stummgeschaltet.");
+                        
+                        Main.getInstance().chatyml.saveConfig(Main.getInstance());
+                        
+                        return true;
+                        
+                    } else {
+                    	
+                    	Mute(p);
+                        
+                        return false;
+                        
+                    }
+                    
+                } catch (NumberFormatException e) {
+                	
+                	Mute(p);
+                    ;
+                    return false;
+                    
+                }
+                
+            } else {
+            	
+            	Mute(p);
+                
+                return false;
+                
+            }
+            
+        }
+
+        return false;
+        
+    }
+
+}

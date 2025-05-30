@@ -1,0 +1,197 @@
+package de.dopemc.hardcore.coinsapi;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class Main extends JavaPlugin implements CommandExecutor {
+
+    private FileConfiguration coinsConfig;
+    private File coinsFile;
+    private final Map<UUID, Integer> playerCoins = new HashMap<>();
+    private final String PREFIX = ChatColor.GOLD + "[" + ChatColor.YELLOW + "Coins" + ChatColor.GOLD + "] " + ChatColor.WHITE;
+
+    @Override
+    public void onEnable() {
+        getCommand("coins").setExecutor(this);
+        loadConfig(); // Sicherstellen, dass die Konfiguration zuerst geladen wird
+        loadCoins();
+    }
+
+    @Override
+    public void onDisable() {
+        saveCoins();
+    }
+
+    private void loadConfig() {
+        coinsFile = new File(getDataFolder(), "config.yml");
+        if (!coinsFile.exists()) {
+            coinsFile.getParentFile().mkdirs();
+            saveDefaultConfig(); // Speichert die Standard-config.yml
+            copy(getResource("config.yml"), coinsFile); // Kopiert eine optionale config.yml
+        }
+        coinsConfig = YamlConfiguration.loadConfiguration(coinsFile);
+        if (coinsConfig == null) {
+            getServer().getPluginManager().disablePlugin(this);
+        }
+    }
+
+    public void saveConfig() {
+        if (coinsConfig != null) { // Überprüfen, ob coinsConfig nicht null ist
+            try {
+                coinsConfig.save(coinsFile);
+            } catch (IOException e) {
+            }
+        } else {
+        }
+    }
+
+    private void loadCoins() {
+        if (coinsConfig != null && coinsConfig.contains("players")) { // Überprüfen, ob coinsConfig geladen wurde
+            for (String uuidString : coinsConfig.getConfigurationSection("players").getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidString);
+                    int coins = coinsConfig.getInt("players." + uuidString, 0);
+                    playerCoins.put(uuid, coins);
+                } catch (IllegalArgumentException e) {
+                }
+            }
+        } else if (coinsConfig == null) {
+        }
+    }
+
+    private void saveCoins() {
+        if (coinsConfig != null) { // Überprüfen, ob coinsConfig geladen wurde
+            coinsConfig.set("players", null); // Clear existing player coins
+            for (Map.Entry<UUID, Integer> entry : playerCoins.entrySet()) {
+                coinsConfig.set("players." + entry.getKey().toString(), entry.getValue());
+            }
+            saveConfig();
+        } else {
+        }
+    }
+
+    public int getCoins(Player player) {
+        return playerCoins.getOrDefault(player.getUniqueId(), 0);
+    }
+
+    public void setCoins(Player player, int amount) {
+        playerCoins.put(player.getUniqueId(), amount);
+        saveCoins();
+    }
+
+    public void addCoins(Player player, int amount) {
+        int currentCoins = getCoins(player);
+        playerCoins.put(player.getUniqueId(), currentCoins + amount);
+        saveCoins();
+    }
+
+    public void removeCoins(Player player, int amount) {
+        int currentCoins = getCoins(player);
+        playerCoins.put(player.getUniqueId(), Math.max(0, currentCoins - amount));
+        saveCoins();
+    }
+
+    private boolean isAdmin(CommandSender sender) {
+        return sender.hasPermission("coinsapi.admin");
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("coins")) {
+            if (sender instanceof Player p) {
+                if (args.length == 0) {
+                    p.sendMessage(PREFIX + "Deine Coins: " + ChatColor.YELLOW + getCoins(p));
+                    return true;
+                } else if (args.length >= 2) {
+                    if (isAdmin(sender)) {
+                        Player target = Bukkit.getPlayer(args[1]);
+                        if (target != null) {
+                            if (args[0].equalsIgnoreCase("see")) {
+                                sender.sendMessage(PREFIX + "Coins von " + ChatColor.YELLOW + target.getName() + ": " + ChatColor.YELLOW + getCoins(target));
+                                return true;
+                            } else if (args[0].equalsIgnoreCase("add")) {
+                                if (args.length == 3) {
+                                    try {
+                                        int amount = Integer.parseInt(args[2]);
+                                        addCoins(target, amount);
+                                        sender.sendMessage(PREFIX + ChatColor.GREEN + amount + " Coins zu " + ChatColor.YELLOW + target.getName() + " hinzugefügt.");
+                                        target.sendMessage(PREFIX + ChatColor.GREEN + amount + " Coins erhalten.");
+                                        return true;
+                                    } catch (NumberFormatException e) {
+                                        sender.sendMessage(PREFIX + ChatColor.RED + "Ungültige Menge.");
+                                    }
+                                } else {
+                                    sender.sendMessage(PREFIX + ChatColor.RED + "Verwendung: /coins add <Spieler> <Menge>");
+                                }
+                                return false;
+                            } else if (args[0].equalsIgnoreCase("remove")) {
+                                if (args.length == 3) {
+                                    try {
+                                        int amount = Integer.parseInt(args[2]);
+                                        removeCoins(target, amount);
+                                        sender.sendMessage(PREFIX + ChatColor.RED + amount + " Coins von " + ChatColor.YELLOW + target.getName() + " entfernt.");
+                                        target.sendMessage(PREFIX + ChatColor.RED + amount + " Coins verloren.");
+                                        return true;
+                                    } catch (NumberFormatException e) {
+                                        sender.sendMessage(PREFIX + ChatColor.RED + "Ungültige Menge.");
+                                    }
+                                } else {
+                                    sender.sendMessage(PREFIX + ChatColor.RED + "Verwendung: /coins remove <Spieler> <Menge>");
+                                }
+                                return false;
+                            } else if (args[0].equalsIgnoreCase("set")) {
+                                if (args.length == 3) {
+                                    try {
+                                        int amount = Integer.parseInt(args[2]);
+                                        setCoins(target, amount);
+                                        sender.sendMessage(PREFIX + "Coins von " + ChatColor.YELLOW + target.getName() + " auf " + ChatColor.YELLOW + amount + " gesetzt.");
+                                        target.sendMessage(PREFIX + "Deine Coins wurden auf " + ChatColor.YELLOW + amount + " gesetzt.");
+                                        return true;
+                                    } catch (NumberFormatException e) {
+                                        sender.sendMessage(PREFIX + ChatColor.RED + "Ungültige Menge.");
+                                    }
+                                } else {
+                                    sender.sendMessage(PREFIX + ChatColor.RED + "Verwendung: /coins set <Spieler> <Menge>");
+                                }
+                                return false;
+                            } else {
+                                sender.sendMessage(PREFIX + ChatColor.RED + "Verwendung: /coins [see/add/remove/set] <Spieler> <Menge>");
+                            }
+                        } else {
+                            sender.sendMessage(PREFIX + ChatColor.RED + "Spieler '" + args[1] + "' nicht gefunden.");
+                        }
+                    } else {
+                        sender.sendMessage(PREFIX + ChatColor.RED + "Du hast keine Berechtigung für diesen Befehl.");
+                    }
+                    return false;
+                } else {
+                    sender.sendMessage(PREFIX + ChatColor.RED + "Verwendung: /coins [see/add/remove/set] <Spieler> <Menge>");
+                }
+            } else {
+                sender.sendMessage(PREFIX + ChatColor.RED + "Dieser Befehl kann nur von Spielern ausgeführt werden.");
+            }
+        }
+        return false;
+    }
+
+    private void copy(java.io.InputStream in, File file) {
+        try {
+            java.nio.file.Files.copy(in, file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

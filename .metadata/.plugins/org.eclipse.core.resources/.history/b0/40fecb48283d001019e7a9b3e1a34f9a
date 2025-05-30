@@ -1,0 +1,61 @@
+package de.dopemc.hardcore.ChatAPI.command;
+
+import java.util.concurrent.TimeUnit;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import de.dopemc.hardcore.ChatAPI.Main;
+
+public class Command_Mute implements CommandExecutor{
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("mute")) {
+            if (args.length == 1) {
+                // /mute <zeitInMinuten> (globaler Mute)
+                try {
+                    long durationMinutes = Long.parseLong(args[0]);
+                    Main.getInstance().chatyml.getglobalMuteEndTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(durationMinutes);
+                    Main.getInstance().chatyml.globalMuted = true;
+                    Bukkit.broadcastMessage(ChatColor.RED + "Der Chat wurde für " + durationMinutes + " Minuten stummgeschaltet!");
+                    Main.getInstance().chatyml.saveConfig();
+                    return true;
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Verwendung: /mute <ZeitInMinuten> oder /mute <Spieler> <ZeitInMinuten>");
+                    return false;
+                }
+            } else if (args.length == 2) {
+                // /mute <Spieler> <ZeitInMinuten> (Spieler-spezifischer Mute)
+                String targetName = args[0];
+                try {
+                    long durationMinutes = Long.parseLong(args[1]);
+                    Player target = Bukkit.getPlayer(targetName);
+                    if (target != null) {
+                        long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(durationMinutes);
+                        playerMuteEndTime.put(target.getUniqueId(), endTime);
+                        target.sendMessage(ChatColor.RED + "Du wurdest für " + durationMinutes + " Minuten stummgeschaltet.");
+                        sender.sendMessage(ChatColor.GREEN + "Spieler " + targetName + " wurde für " + durationMinutes + " Minuten stummgeschaltet.");
+                        saveConfig();
+                        return true;
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Spieler '" + targetName + "' nicht gefunden.");
+                        return false;
+                    }
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Verwendung: /mute <ZeitInMinuten> oder /mute <Spieler> <ZeitInMinuten>");
+                    return false;
+                }
+            } else {
+                sender.sendMessage(ChatColor.RED + "Verwendung: /mute <ZeitInMinuten> oder /mute <Spieler> <ZeitInMinuten>");
+                return false;
+            }
+        }
+        return false;
+    }
+
+}

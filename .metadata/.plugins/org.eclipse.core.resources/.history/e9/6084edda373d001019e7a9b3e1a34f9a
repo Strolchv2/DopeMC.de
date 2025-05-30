@@ -1,0 +1,13 @@
+main: de.dopemc.hardcore.statsapi.Main
+name: DopeMC-StatsAPI
+version: 1.0.0
+author: DeinNameOderNickname # Bitte ersetze dies durch den tatsächlichen Autor
+api-version: 1.21
+commands:
+  stats:
+    description: Zeigt deine Statistiken an oder die eines anderen Spielers (Admin).
+    usage: /<command> [Spieler] oder /<command> [add/remove/set] <Spieler> <Statistik> <Menge>
+permissions:
+  dopemc.statsapi.admin:
+    description: Ermöglicht das Anzeigen und Verwalten von Statistiken anderer Spieler.
+    default: op

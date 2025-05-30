@@ -1,0 +1,49 @@
+package de.dopemc.hardcore.ChatAPI;
+
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import de.dopemc.hardcore.ChatAPI.listener.Listener_PlayerChat;
+import de.dopemc.hardcore.ChatAPI.utils.Chatyml;
+
+public class Main extends JavaPlugin{
+	
+	public static Main instance;
+	public static Chatyml chatyml;
+
+	public String Prefix = "§eDopeMC.de §7✘ §f";
+	
+	@Override
+	public void onEnable() {
+		
+		instance = this;
+		chatyml = new Chatyml();
+		
+		System.out.println("§cChatAPI gestartet!");
+		
+		chatyml.loadConfig();
+		
+		Bukkit.getPluginManager().registerEvents(new Listener_PlayerChat(), instance);
+		
+		super.onEnable();
+		
+	}
+	
+	@Override
+	public void onDisable() {
+		
+		chatyml.saveConfig();
+		
+		super.onDisable();
+		
+	}
+	
+	public static Main getInstance() {
+		
+		return instance;
+		
+	}
+
+	
+	
+}

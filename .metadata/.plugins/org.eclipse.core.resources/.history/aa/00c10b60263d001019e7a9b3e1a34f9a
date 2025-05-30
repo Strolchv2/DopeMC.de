@@ -1,0 +1,5 @@
+package de.dopemc.hardcore.ChatAPI.command;
+
+public class Command_Mute {
+
+}

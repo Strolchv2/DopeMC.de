@@ -1,0 +1,8 @@
+main: de.dopemc.hardcore.ChatAPI.Main
+name: DopeMC-ChatAPI
+version: 1.0.0
+author: Dennis Michanosin
+api-version: 1.21.5
+commands:
+   mute:
+   clearchat:

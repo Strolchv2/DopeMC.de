@@ -1,0 +1,5 @@
+main: de.dopemc.hardcore.coinsapi.Main
+name: DopeMC-CoinsAPI
+version: 1.0.0
+auhtor: 1.0.0
+api-version: 1.21.5

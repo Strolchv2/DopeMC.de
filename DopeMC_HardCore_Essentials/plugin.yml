@@ -1,0 +1,5 @@
+main: de.dopemc.hardcore.essentials.Main
+name: DopeMC-Essentials
+version: 1.0.0
+author: Dennis Michanosin
+api-version: 1.21.5

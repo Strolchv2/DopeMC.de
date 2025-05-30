@@ -1,0 +1,5 @@
+package de.dopemc.hardcore.ChatAPI.listener;
+
+public class Listener_ChatEvent {
+
+}

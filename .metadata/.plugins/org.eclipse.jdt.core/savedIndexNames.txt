@@ -1,0 +1,8 @@
+INDEX VERSION 1.134+C:\Users\dmich\Documents\DopeMC\.metadata\.plugins\org.eclipse.jdt.core
+210098281.index
+689946171.index
+3398055702.index
+1865797976.index
+2611270932.index
+1704933286.index
+4135471722.index

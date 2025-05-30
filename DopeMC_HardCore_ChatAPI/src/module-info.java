@@ -1,0 +1,11 @@
+/**
+ * 
+ */
+/**
+ * 
+ */
+module DopeMC_HardCore_ChatAPI {
+	requires org.bukkit;
+	requires PermissionsEx;
+	requires jdk.jdi;
+}

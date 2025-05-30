@@ -1,0 +1,7 @@
+main: de.dopemc.hardcore.coinsapi.Main
+name: DopeMC-CoinsAPI
+version: 1.0.0
+author: Dennis Michanosin
+api-version: 1.21.5
+commands:
+  coins:

@@ -1,0 +1,73 @@
+package de.dopemc.hardcore.ChatAPI.utils;
+
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+
+import de.dopemc.hardcore.ChatAPI.Main;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+public class Chatyml {
+
+
+    public FileConfiguration chatConfig;
+    public File chatConfigFile;
+    public boolean globalMuted = false;
+    public long globalMuteEndTime = 0;
+    public Map<UUID, Long> playerMuteEndTime = new HashMap<>();
+    
+    public void loadConfig() {
+        chatConfigFile = new File(Main.getInstance().getDataFolder(), "chat.yml");
+        if (!chatConfigFile.exists()) {
+            chatConfigFile.getParentFile().mkdirs();
+            Main.getInstance().saveDefaultConfig(); // Speichert die Standard-plugin.yml
+            copy(Main.getInstance().getResource("chat.yml"), chatConfigFile); // Kopiert eine optionale config.yml
+        }
+        chatConfig = YamlConfiguration.loadConfiguration(chatConfigFile);
+
+        globalMuted = chatConfig.getBoolean("global.muted", false);
+        globalMuteEndTime = chatConfig.getLong("global.endTime", 0);
+
+        if (chatConfig.contains("players")) {
+            for (String uuidString : chatConfig.getConfigurationSection("players").getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidString);
+                    long endTime = chatConfig.getLong("players." + uuidString);
+                    if (endTime > System.currentTimeMillis()) {
+                        playerMuteEndTime.put(uuid, endTime);
+                    }
+                } catch (IllegalArgumentException e) {
+                	
+                }
+            }
+        }
+    }
+	
+    public void saveConfig() {
+        chatConfig.set("global.muted", globalMuted);
+        chatConfig.set("global.endTime", globalMuteEndTime);
+
+        chatConfig.set("players", null); // Clear existing player mutes
+        for (Map.Entry<UUID, Long> entry : playerMuteEndTime.entrySet()) {
+            chatConfig.set("players." + entry.getKey().toString(), entry.getValue());
+        }
+
+        try {
+            chatConfig.save(chatConfigFile);
+        } catch (IOException e) {
+        	
+        }
+    }
+	
+    private void copy(java.io.InputStream in, File file) {
+        try {
+            java.nio.file.Files.copy(in, file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

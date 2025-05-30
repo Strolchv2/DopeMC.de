@@ -1,0 +1,21 @@
+package de.dopemc.hardcore.ChatAPI.listener;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+
+public class Listener_PlayerChat implements Listener{
+
+	@EventHandler
+	public void onPlayerChatEvent(@SuppressWarnings("deprecation") AsyncPlayerChatEvent e) {
+		
+		Player p = (Player) e.getPlayer();
+		
+		
+		p.sendMessage("", "");
+		
+	}
+}	
+
+

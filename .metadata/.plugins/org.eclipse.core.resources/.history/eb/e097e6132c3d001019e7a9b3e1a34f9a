@@ -1,0 +1,68 @@
+package de.dopemc.hardcore.ChatAPI.listener;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+
+import de.dopemc.hardcore.ChatAPI.Main;
+
+public class Listener_ChatMute implements Listener{
+
+	  @EventHandler
+	    public void onPlayerChat(AsyncPlayerChatEvent event) {
+	        Player p = event.getPlayer();
+	        long now = System.currentTimeMillis();
+
+	        // Überprüfe globalen Mute
+	        if (Main.getInstance().chatyml.globalMuted  && now < Main.getInstance().chatyml.globalMuteEndTime) {
+	        	
+	            event.setCancelled(true);
+	            
+	            p.sendMessage("");
+	            p.sendMessage(Main.getInstance().Prefix + "§cDer Chat ist momentan stummgeschaltet.");
+	            p.sendMessage("");
+	            
+	            return;
+	            
+	        } else if (Main.getInstance().chatyml.globalMuted && now >= Main.getInstance().chatyml.globalMuteEndTime) {
+	        	
+	        	Main.getInstance().chatyml.globalMuted = false;
+	        	
+	        	Main.getInstance().chatyml.globalMuteEndTime = 0;
+	        	
+	            Bukkit.broadcastMessage("");
+	            Bukkit.broadcastMessage(ChatColor.GREEN + "Der Chat ist wieder freigegeben.");
+	            Bukkit.broadcastMessage(ChatColor.GREEN + "Der Chat ist wieder freigegeben.");
+
+	            Main.getInstance().chatyml.saveConfig(Main.instance);
+	            
+	        }else if(p.hasPermission("ChatAPI.ByPass")) {
+	        	
+	        	event.setCancelled(false);
+	        	
+	        }
+
+	        // Überprüfe Spieler-spezifischen Mute
+	        if (Main.getInstance().chatyml.playerMuteEndTime.containsKey(p.getUniqueId())) {
+	        	
+	            if (now < Main.getInstance().chatyml.playerMuteEndTime.get(p.getUniqueId())) {
+	            	
+	                event.setCancelled(true);
+	                
+		            p.sendMessage("");
+	                p.sendMessage(Main.getInstance().Prefix + "§cDu bist momentan stummgeschaltet.");
+		            p.sendMessage("");
+
+	            } else {
+	            	Main.getInstance().chatyml.playerMuteEndTime.remove(p.getUniqueId());
+	            	
+	            	Main.getInstance().chatyml.saveConfig(Main.getInstance());
+	            	
+	            }
+	        }
+	    }
+	
+}

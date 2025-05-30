@@ -1,0 +1,58 @@
+package de.dopemc.hardcore.ChatAPI.listener;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+
+import de.dopemc.hardcore.ChatAPI.Main;
+
+public class Listener_ChatMute implements Listener{
+
+	  @EventHandler
+	    public void onPlayerChat(AsyncPlayerChatEvent event) {
+	        Player player = event.getPlayer();
+	        long now = System.currentTimeMillis();
+
+	        // Überprüfe globalen Mute
+	        if (Main.getInstance().chatyml.globalMuted  && now < Main.getInstance().chatyml.globalMuteEndTime) {
+	        	
+	            event.setCancelled(true);
+	            
+	            player.sendMessage(ChatColor.RED + "Der Chat ist momentan stummgeschaltet.");
+	            
+	            return;
+	            
+	        } else if (Main.getInstance().chatyml.globalMuted && now >= Main.getInstance().chatyml.globalMuteEndTime) {
+	        	
+	        	Main.getInstance().chatyml.globalMuted = false;
+	        	
+	        	Main.getInstance().chatyml.globalMuteEndTime = 0;
+	        	
+	            Bukkit.broadcastMessage(ChatColor.GREEN + "Der Chat ist wieder freigegeben.");
+	            
+	            Main.getInstance().chatyml.saveConfig();
+	            
+	        }
+
+	        // Überprüfe Spieler-spezifischen Mute
+	        if (Main.getInstance().chatyml.playerMuteEndTime.containsKey(player.getUniqueId())) {
+	        	
+	            if (now < Main.getInstance().chatyml.playerMuteEndTime.get(player.getUniqueId())) {
+	            	
+	                event.setCancelled(true);
+	                
+	                player.sendMessage(ChatColor.RED + "Du bist momentan stummgeschaltet.");
+	                
+	            } else {
+	            	Main.getInstance().chatyml.playerMuteEndTime.remove(player.getUniqueId());
+	            	
+	            	Main.getInstance().chatyml.saveConfig();
+	            	
+	            }
+	        }
+	    }
+	
+}
